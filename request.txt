@@ -1,6 +1,6 @@
 POST /my-account/change-email HTTP/1.1
-Host: anon.web-security-academy.net
+Host: vulnerable.example.com
 Content-Type: application/x-www-form-urlencoded
-Cookie: session=anon
+Cookie: session=REPLACE_ME
 
-email=wiener%40test.net
+email=attacker%40evil.com

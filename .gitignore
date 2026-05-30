@@ -10,8 +10,14 @@ dist/
 venv/
 env/
 
+# Java / Gradle (burp-extension)
+.gradle/
+burp-extension/build/
+*.class
+
 # Generated CSRF PoC output
 poc.html
+pocs/
 
 # Editor / IDE
 .vscode/
@@ -24,3 +30,7 @@ poc.html
 # OS
 .DS_Store
 Thumbs.db
+
+#requests
+requests/
+

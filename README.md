@@ -51,11 +51,17 @@ The loadable extension is written to `burp-extension/build/libs/csrf-forge.jar`.
 
 You should see `CSRF PoC Forge loaded...` in the extension output, a new **CSRF PoC Forge** suite tab, and a **Generate CSRF PoC** item in the right-click menu.
 
+![CSRF PoC Forge suite tab](images/suite-tab.png)
+
 ### Use
 
 - **From any request:** right-click a request in Proxy history, Repeater, Target, Logger, etc. → **Generate CSRF PoC**. The request is loaded into the **CSRF PoC Forge** tab and the PoC is generated immediately.
 - **From the tab:** open the **CSRF PoC Forge** tab, paste a raw HTTP request (or click **Load sample**), pick the scheme, toggle **Auto-submit on load**, and click **Generate PoC**.
 - **Copy** the PoC to the clipboard, or **Save as .html** to write it to disk, then open it in a browser logged in to the target.
+
+![Send request to the extension from the right-click menu](images/send-request-to-extension.png)
+
+![The CSRF PoC Forge tool generating a PoC](images/tool.png)
 
 ## CLI
 

@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+group = 'csrfforge'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Provided by Burp at runtime, so it is compile-only and not bundled.
+    compileOnly 'net.portswigger.burp.extensions:montoya-api:2026.4'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Target Java 17 (Montoya minimum / Burp's bundled JRE) using whatever JDK runs Gradle.
+    options.release = 17
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    // Produces build/libs/csrf-forge.jar — load this in Burp via Extensions -> Add.
+    archiveBaseName = 'csrf-forge'
+    archiveVersion = ''
+}

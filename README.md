@@ -1,6 +1,11 @@
 # CSRF PoC Forge
 
-A small CLI tool that converts a raw HTTP request into a self-contained HTML Cross-Site Request Forgery (CSRF) Proof-of-Concept page. Drop in a captured request (e.g. from Burp Suite), get back an HTML file that, when opened in a victim's browser, auto-submits the same request against the target.
+Convert a raw HTTP request into a self-contained HTML Cross-Site Request Forgery (CSRF) Proof-of-Concept page. Drop in a captured request, get back an HTML file that, when opened in a victim's browser, auto-submits the same request against the target — using the victim's own cookies.
+
+It ships in two forms that share the same generation logic:
+
+- **Burp Suite extension** (Java / Montoya API) — right-click any request in Burp and choose **Generate CSRF PoC**, or paste a request into the **CSRF PoC Forge** tab. See [Burp Suite extension](#burp-suite-extension).
+- **CLI** (Python) — `csrf-forge -i request.txt poc.html`. See [CLI](#cli).
 
 > **For authorized security testing only.** Use against targets you own or have explicit written permission to test (CTFs, bug bounty programs in scope, internal pentests, lab environments like PortSwigger Web Security Academy).
 
@@ -23,7 +28,40 @@ It produces an HTML file that:
 2. Translates every body parameter into a hidden `<input>`.
 3. Auto-submits the form on page load via a `<script>` tag, so simply opening the file in a browser fires the request — using the victim's own cookies (no need to copy the `Cookie` header; the browser attaches it).
 
-## Install
+## Burp Suite extension
+
+A Burp extension built on the modern [Montoya API](https://portswigger.net/burp/documentation/desktop/extensions). It works in both Burp Suite Professional and Community, and gives Community users the "Generate CSRF PoC" capability that is otherwise Pro-only.
+
+### Build
+
+You need a JDK 17+ (the bundled Gradle wrapper handles the rest — no separate Gradle install required).
+
+```sh
+cd burp-extension
+./gradlew jar          # on Windows: .\gradlew.bat jar
+```
+
+The loadable extension is written to `burp-extension/build/libs/csrf-forge.jar`.
+
+### Load into Burp
+
+1. **Extensions → Installed → Add**.
+2. Extension type: **Java**.
+3. Select `burp-extension/build/libs/csrf-forge.jar` and click **Next**.
+
+You should see `CSRF PoC Forge loaded...` in the extension output, a new **CSRF PoC Forge** suite tab, and a **Generate CSRF PoC** item in the right-click menu.
+
+### Use
+
+- **From any request:** right-click a request in Proxy history, Repeater, Target, Logger, etc. → **Generate CSRF PoC**. The request is loaded into the **CSRF PoC Forge** tab and the PoC is generated immediately.
+- **From the tab:** open the **CSRF PoC Forge** tab, paste a raw HTTP request (or click **Load sample**), pick the scheme, toggle **Auto-submit on load**, and click **Generate PoC**.
+- **Copy** the PoC to the clipboard, or **Save as .html** to write it to disk, then open it in a browser logged in to the target.
+
+## CLI
+
+A Python command-line version with the same generation logic.
+
+### Install
 
 Clone and install in editable mode:
 
@@ -37,7 +75,7 @@ This registers a `csrf-forge` console command.
 
 > **Windows PATH note:** if `pip` warns that the Scripts directory is not on PATH, you can either add `%APPDATA%\Python\Python3XX\Scripts` to your user PATH, or just invoke the tool via the module form below — it always works.
 
-## Usage
+### Usage
 
 ```sh
 csrf-forge -i request.txt poc.html
@@ -118,10 +156,21 @@ Generated `poc.html`:
 
 ```
 CSRF-PoC-Forge/
-├── csrf_forge/
+├── csrf_forge/                 # Python CLI
 │   ├── __init__.py
 │   └── cli.py
-├── request.txt        # sample input
+├── burp-extension/             # Burp Suite extension (Java / Montoya API)
+│   ├── build.gradle
+│   ├── settings.gradle
+│   ├── gradlew / gradlew.bat   # Gradle wrapper (no Gradle install needed)
+│   └── src/main/
+│       ├── java/csrfforge/
+│       │   ├── CsrfForgeExtension.java   # entry point (BurpExtension)
+│       │   ├── CsrfContextMenu.java      # right-click "Generate CSRF PoC"
+│       │   ├── CsrfForgeTab.java         # suite tab UI
+│       │   └── PocGenerator.java         # shared parse/build logic
+│       └── resources/META-INF/services/  # ServiceLoader entry point
+├── request.txt                 # sample input (CLI)
 ├── pyproject.toml
 ├── README.md
 └── LICENSE

@@ -2,6 +2,7 @@ package csrfforge;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.requests.HttpRequest;
+import burp.api.montoya.ui.editor.HttpRequestEditor;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -45,7 +46,7 @@ public class CsrfForgeTab {
 
     private final MontoyaApi api;
     private final JPanel root;
-    private final JTextArea requestArea;
+    private final HttpRequestEditor requestEditor;
     private final JTextArea outputArea;
     private final JComboBox<String> schemeBox;
     private final JCheckBox autoSubmitBox;
@@ -56,13 +57,16 @@ public class CsrfForgeTab {
 
         Font mono = new Font(Font.MONOSPACED, Font.PLAIN, 12);
 
-        requestArea = new JTextArea(SAMPLE_REQUEST);
-        requestArea.setFont(mono);
-        requestArea.setLineWrap(false);
+        // Burp's native request editor: gives the same syntax coloring,
+        // highlighting and Pretty/Raw/Hex tabs as Repeater, Intruder, etc.
+        requestEditor = api.userInterface().createHttpRequestEditor();
+        requestEditor.setRequest(HttpRequest.httpRequest(SAMPLE_REQUEST));
 
         outputArea = new JTextArea();
         outputArea.setFont(mono);
-        outputArea.setEditable(false);
+        // Editable so you can tweak the generated PoC before copying/saving.
+        // Note: clicking "Generate PoC" again overwrites manual edits.
+        outputArea.setEditable(true);
         outputArea.setLineWrap(false);
 
         schemeBox = new JComboBox<>(new String[]{"https", "http"});
@@ -80,7 +84,7 @@ public class CsrfForgeTab {
 
         JButton sampleButton = new JButton("Load sample");
         sampleButton.addActionListener(e -> {
-            requestArea.setText(SAMPLE_REQUEST);
+            requestEditor.setRequest(HttpRequest.httpRequest(SAMPLE_REQUEST));
             schemeBox.setSelectedItem("https");
             setStatus("Loaded sample request.");
         });
@@ -89,7 +93,7 @@ public class CsrfForgeTab {
         JPanel leftPanel = new JPanel(new BorderLayout(0, 4));
         leftPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 4));
         leftPanel.add(new JLabel("Raw HTTP request"), BorderLayout.NORTH);
-        leftPanel.add(new JScrollPane(requestArea), BorderLayout.CENTER);
+        leftPanel.add(requestEditor.uiComponent(), BorderLayout.CENTER);
 
         JPanel leftControls = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         leftControls.add(new JLabel("Scheme:"));
@@ -134,7 +138,7 @@ public class CsrfForgeTab {
      */
     public void loadFromRequest(HttpRequest request) {
         SwingUtilities.invokeLater(() -> {
-            requestArea.setText(request.toString());
+            requestEditor.setRequest(request);
             boolean secure = request.httpService() != null && request.httpService().secure();
             schemeBox.setSelectedItem(secure ? "https" : "http");
             generate();
@@ -146,7 +150,7 @@ public class CsrfForgeTab {
         boolean autoSubmit = autoSubmitBox.isSelected();
         try {
             PocGenerator.ParsedRequest parsed =
-                    PocGenerator.parseRaw(requestArea.getText(), scheme);
+                    PocGenerator.parseRaw(requestEditor.getRequest().toString(), scheme);
             String html = PocGenerator.buildHtml(
                     parsed.url, parsed.method, parsed.params, autoSubmit);
             outputArea.setText(html);
